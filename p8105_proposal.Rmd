@@ -1,0 +1,46 @@
+---
+title: "p8105_final_proposal"
+output: html_document
+---
+
+**Group Members**
+Naina Ahuja (nja2140)
+Mary Knoop (mk4022)
+Sam Loewen (scl2160)
+Uma Palaniappan (unp2000)
+Britney Mazzetta (blm2156)
+
+**Tentative Project Title**: Hot Diggity Dog: Your Guide to Pups in NYC
+
+**Motivation for this project**
+Compare dog based data across various boroughs to deepen our understanding of the patterns and trends among canines in NYC
+
+**Intended Final Products**
+Cohesive, interactive, interesting, and straight forward visualizations of our source data
+
+**Anticipated Data Sources**
+NYC Open Data
+
+**Planned Analyses/Visualizations/Coding Challenges**
+*Analyses:*
+Frequencies of breeds
+Frequencies of gender
+Mean number of popular breeds across boroughs
+*Visualizations:*
+Interactive map 
+Overlay the map of the NYC boroughs with data 
+Dog gender distributions among different breeds in different boroughs
+Box plots showing different breeds across boroughs (based on examples from class)
+*Coding challenges:*
+Missing/Incomplete data
+High volumes of data that need to be cleaned
+
+**Planned Timeline**
+1: Review dataset, variables, missing values
+2: Clean data
+3: Create new variables using our data, summary statistics, functions within dataset
+4: Brainstorm visualization ideas/plot plan
+5: Merge all visualizations into an easy to view dashboard
+6: Publish end result 
+
+
