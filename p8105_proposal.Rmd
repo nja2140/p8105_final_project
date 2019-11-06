@@ -1,6 +1,6 @@
 ---
 title: "p8105_final_proposal"
-output: html_document
+output: github_document
 ---
 
 **Group Members**
