@@ -1,13 +1,24 @@
----
-title: "Final project"
-author: "Data Sci Doggos"
-date: "11/17/2019"
-output: github_document
----
+Final project
+================
+Data Sci Doggos
+11/17/2019
 
-```{r setup}
+``` r
 library(tidyverse)
+```
 
+    ## ── Attaching packages ───────────────────────── tidyverse 1.2.1 ──
+
+    ## ✔ ggplot2 3.2.1     ✔ purrr   0.3.2
+    ## ✔ tibble  2.1.3     ✔ dplyr   0.8.3
+    ## ✔ tidyr   1.0.0     ✔ stringr 1.4.0
+    ## ✔ readr   1.3.1     ✔ forcats 0.4.0
+
+    ## ── Conflicts ──────────────────────────── tidyverse_conflicts() ──
+    ## ✖ dplyr::filter() masks stats::filter()
+    ## ✖ dplyr::lag()    masks stats::lag()
+
+``` r
 dogz = read.csv("./data/NYC_Dog_Licensing_Dataset.csv") %>% 
   janitor::clean_names() %>% 
   mutate(animal_name = str_to_sentence(animal_name),
@@ -19,5 +30,3 @@ dogz = read.csv("./data/NYC_Dog_Licensing_Dataset.csv") %>%
          borough = ifelse(zip_code %in% c(11201,11203:11226,11228:11239,11241:11243,11249,11252,11256), "Brooklyn", borough)) %>% 
   rename(animal_birth_year = animal_birth_month, license_id = row_number)
 ```
-
-
