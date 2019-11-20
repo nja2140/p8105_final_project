@@ -7,14 +7,14 @@ Data Sci Doggos
 library(tidyverse)
 ```
 
-    ## -- Attaching packages --------------------------------------- tidyverse 1.2.1 --
+    ## -- Attaching packages -------------------------------------------------------------------- tidyverse 1.2.1 --
 
     ## v ggplot2 3.2.1     v purrr   0.3.2
     ## v tibble  2.1.3     v dplyr   0.8.3
     ## v tidyr   1.0.0     v stringr 1.4.0
     ## v readr   1.3.1     v forcats 0.4.0
 
-    ## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+    ## -- Conflicts ----------------------------------------------------------------------- tidyverse_conflicts() --
     ## x dplyr::filter() masks stats::filter()
     ## x dplyr::lag()    masks stats::lag()
 
@@ -102,3 +102,10 @@ head(dogz)
     ## 4          2014-09-12           2017-09-12              3       6
     ## 5          2014-09-12           2017-10-09              3      10
     ## 6          2014-09-12           2019-10-01              5       7
+
+``` r
+distinct_dogz =
+  dogz %>% 
+  distinct(animal_name, animal_gender, animal_birth_year, breed_name, .keep_all = TRUE) %>% 
+  select (-license_issued_date, -license_expired_date, -license_length)
+```

@@ -62,4 +62,12 @@ dogz = read.csv("./data/NYC_Dog_Licensing_Dataset.csv") %>%
 head(dogz)
 ```
 
+```{r}
+distinct_dogz =
+  dogz %>% 
+  distinct(animal_name, animal_gender, animal_birth_year, breed_name, .keep_all = TRUE) %>% 
+  select (-license_issued_date, -license_expired_date, -license_length)
+```
+
+
 
