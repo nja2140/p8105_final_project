@@ -7,7 +7,10 @@ output: github_document
 
 ```{r setup}
 library(tidyverse)
+library(lubridate)
+```
 
+```{r}
 dogz = read.csv("./data/NYC_Dog_Licensing_Dataset.csv") %>% 
   janitor::clean_names() %>% 
   filter(breed_name != "Unknown",
@@ -20,6 +23,10 @@ dogz = read.csv("./data/NYC_Dog_Licensing_Dataset.csv") %>%
          borough = ifelse(zip_code %in% c(11201,11203:11226,11228:11239,11241:11243,11249,11252,11256), "Brooklyn", borough),
          borough = as.factor(borough),
          breed_name = as.character(breed_name),
+         license_issued_date = as.Date(license_issued_date, format = "%m/%d/%Y"),
+         license_expired_date = as.Date(license_expired_date, format = "%m/%d/%Y"),
+         license_length = year(license_expired_date) - year(license_issued_date),
+         dog_age = 2019 - animal_birth_month,
          breed_name = ifelse(breed_name == "American Pit Bull Terrier/Pit Bull", "American Pit Bull Mix / Pit Bull Mix", breed_name),
          breed_name = ifelse(breed_name == "American Pit Bull Terrier/Pit Bull", "American Pit Bull Mix / Pit Bull Mix", breed_name),
          breed_name = ifelse(breed_name == "Australian Cattle Dog", "Australian Cattledog", breed_name),
@@ -54,4 +61,5 @@ dogz = read.csv("./data/NYC_Dog_Licensing_Dataset.csv") %>%
 
 head(dogz)
 ```
+
 

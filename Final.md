@@ -7,16 +7,27 @@ Data Sci Doggos
 library(tidyverse)
 ```
 
-    ## -- Attaching packages ---------------------------------------------------------- tidyverse 1.2.1 --
+    ## -- Attaching packages --------------------------------------- tidyverse 1.2.1 --
 
     ## v ggplot2 3.2.1     v purrr   0.3.2
     ## v tibble  2.1.3     v dplyr   0.8.3
     ## v tidyr   1.0.0     v stringr 1.4.0
     ## v readr   1.3.1     v forcats 0.4.0
 
-    ## -- Conflicts ------------------------------------------------------------- tidyverse_conflicts() --
+    ## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
     ## x dplyr::filter() masks stats::filter()
     ## x dplyr::lag()    masks stats::lag()
+
+``` r
+library(lubridate)
+```
+
+    ## 
+    ## Attaching package: 'lubridate'
+
+    ## The following object is masked from 'package:base':
+    ## 
+    ##     date
 
 ``` r
 dogz = read.csv("./data/NYC_Dog_Licensing_Dataset.csv") %>% 
@@ -31,6 +42,10 @@ dogz = read.csv("./data/NYC_Dog_Licensing_Dataset.csv") %>%
          borough = ifelse(zip_code %in% c(11201,11203:11226,11228:11239,11241:11243,11249,11252,11256), "Brooklyn", borough),
          borough = as.factor(borough),
          breed_name = as.character(breed_name),
+         license_issued_date = as.Date(license_issued_date, format = "%m/%d/%Y"),
+         license_expired_date = as.Date(license_expired_date, format = "%m/%d/%Y"),
+         license_length = year(license_expired_date) - year(license_issued_date),
+         dog_age = 2019 - animal_birth_month,
          breed_name = ifelse(breed_name == "American Pit Bull Terrier/Pit Bull", "American Pit Bull Mix / Pit Bull Mix", breed_name),
          breed_name = ifelse(breed_name == "American Pit Bull Terrier/Pit Bull", "American Pit Bull Mix / Pit Bull Mix", breed_name),
          breed_name = ifelse(breed_name == "Australian Cattle Dog", "Australian Cattledog", breed_name),
@@ -80,10 +95,10 @@ head(dogz)
     ## 4                     Akita Crossbreed Manhattan    10013
     ## 5                              Maltese Manhattan    10028
     ## 6        Labrador Retriever Crossbreed Manhattan    10013
-    ##   license_issued_date license_expired_date
-    ## 1          09/12/2014           09/12/2017
-    ## 2          09/12/2014           10/02/2017
-    ## 3          09/12/2014           09/12/2019
-    ## 4          09/12/2014           09/12/2017
-    ## 5          09/12/2014           10/09/2017
-    ## 6          09/12/2014           10/01/2019
+    ##   license_issued_date license_expired_date license_length dog_age
+    ## 1          2014-09-12           2017-09-12              3       5
+    ## 2          2014-09-12           2017-10-02              3       9
+    ## 3          2014-09-12           2019-09-12              5       5
+    ## 4          2014-09-12           2017-09-12              3       6
+    ## 5          2014-09-12           2017-10-09              3      10
+    ## 6          2014-09-12           2019-10-01              5       7
