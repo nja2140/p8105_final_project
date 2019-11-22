@@ -69,5 +69,6 @@ distinct_dogz =
   select (-license_issued_date, -license_expired_date, -license_length)
 ```
 
+Plot #1: Dogs in New York City
 
 
