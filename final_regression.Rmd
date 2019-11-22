@@ -2,30 +2,125 @@
 title: "final_regression"
 author: "Mary Knoop"
 date: "11/22/2019"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
 ```
 
-```{r}
-#predict the age of the dog (y) if you know the boro (x1) and gender (x2) and breed (x3)
+```{r, include=FALSE}
 
-#change breed_name to a factor rather than a character varialbe
+######
+#Incorporate cleanded dataset 
+######
+dogz = read.csv("./data/NYC_Dog_Licensing_Dataset.csv") %>% 
+  janitor::clean_names() %>% 
+  filter(breed_name != "Unknown",
+         extract_year-animal_birth_month < 20) %>% 
+  mutate(animal_name = str_to_sentence(animal_name),
+         borough = ifelse(zip_code %in% c(10001:10282),"Manhattan", borough),
+         borough = ifelse(zip_code %in% c(10301:10314), "Staten Island", borough),
+         borough = ifelse(zip_code %in% c(10451:10475), "Bronx", borough),
+         borough = ifelse(zip_code %in% c(11004,11101:11106,11109,11351,11354:11375,11377:11379,11385,11411:11423,11426:11430,11432:11436,11691:11694,11697), "Queens", borough),
+         borough = ifelse(zip_code %in% c(11201,11203:11226,11228:11239,11241:11243,11249,11252,11256), "Brooklyn", borough),
+         borough = as.factor(borough),
+         breed_name = as.character(breed_name),
+         license_issued_date = as.Date(license_issued_date, format = "%m/%d/%Y"),
+         license_expired_date = as.Date(license_expired_date, format = "%m/%d/%Y"),
+         license_length = year(license_expired_date) - year(license_issued_date),
+         dog_age = 2019 - animal_birth_month,
+         breed_name = ifelse(breed_name == "American Pit Bull Terrier/Pit Bull", "American Pit Bull Mix / Pit Bull Mix", breed_name),
+         breed_name = ifelse(breed_name == "American Pit Bull Terrier/Pit Bull", "American Pit Bull Mix / Pit Bull Mix", breed_name),
+         breed_name = ifelse(breed_name == "Australian Cattle Dog", "Australian Cattledog", breed_name),
+         breed_name = ifelse(breed_name == "Bassett Hound", "Basset Hound", breed_name),
+         breed_name = ifelse(breed_name == "Brittany", "Brittany Spaniel", breed_name),
+         breed_name = ifelse(breed_name == "Coonhound, Black and Tan", "Black and Tan Coonhound", breed_name),
+         breed_name = ifelse(breed_name == "Coonhound, Black and Tan", "Black and Tan Coonhound", breed_name),
+         breed_name = ifelse(breed_name == "Coonhound, Blue Tick", "Bluetick Coonhound", breed_name),
+         breed_name = ifelse(breed_name == "Coonhound, Treeing Walker", "Treeing Walker Coonhound", breed_name),
+         breed_name = ifelse(breed_name == "Cotton de Tulear", "Coton de Tulear", breed_name),
+         breed_name = ifelse(breed_name == "Japanese Chin/Spaniel", "Japanese Chin", breed_name),
+         breed_name = ifelse(breed_name == "Jindo Dog, Korea", "Jindo", breed_name),
+         breed_name = ifelse(breed_name == "Mastiff, French (Dogue de Bordeaux)", "Dogue de Bordeaux", breed_name),
+         breed_name = ifelse(breed_name == "Pharoh hound", "Pharaoh Hound", breed_name),
+         breed_name = ifelse(breed_name == "Schipperke", "Schipperkee", breed_name),
+         breed_name = ifelse(breed_name == "Schnauzer, Miniature", "Miniature Schnauzer", breed_name),
+         breed_name = ifelse(breed_name == "Schnauzer, Miniature Crossbreed", "Miniature Schnauzer, Crossbreed", breed_name),
+         breed_name = ifelse(breed_name == "Welsh Corgi, Cardigan", "Cardigan Welsh Corgi", breed_name),
+         breed_name = ifelse(breed_name == "Welsh Corgi, Pembroke", "Pembroke Welsh Corgi", breed_name),
+         breed_name = ifelse(breed_name == "Bull Dog, French", "French Bulldog", breed_name),
+         breed_name = ifelse(breed_name == "Collie, Bearded", "Bearded Collie", breed_name),
+         breed_name = ifelse(breed_name == "Bullmastiff", "Mastiff, Bull", breed_name),
+         breed_name = ifelse(breed_name == "Neapolitan Mastiff", "Mastiff, Neapolitan", breed_name),
+         breed_name = ifelse(breed_name == "Tibetan Mastiff", "Mastiff, Tibetan", breed_name),
+         breed_name = ifelse(breed_name == "Pointer, German Shorthaired", "German Shorthaired Pointer", breed_name),
+         breed_name = ifelse(breed_name == "Pointer, German Wirehaired", "German Wirehaired Pointer", breed_name),
+         breed_name = ifelse(breed_name == "Schnauzer, Giant", "Giant Schnauzer", breed_name),
+         breed_name = ifelse(breed_name == "Schnauzer, Standard", "Standard Schnauzer", breed_name),
+         breed_name = ifelse(breed_name == "Chinese Shar-Pei", "Shar-Pei, Chinese", breed_name)) %>% 
+  rename(animal_birth_year = animal_birth_month, license_id = row_number) %>% 
+  select(-extract_year)
 
-#create reference groups that are coded as 0
+head(dogz)
+
+distinct_dogz =
+  dogz %>% 
+  distinct(animal_name, animal_gender, animal_birth_year, breed_name, .keep_all = TRUE) %>% 
+  select (-license_issued_date, -license_expired_date, -license_length)
+head(distinct_dogz)
+
+```
+
+```{r, include=FALSE}
+######
+#Regression analysis: predict the age of the dog (y) if you know the boro (x1) and gender (x2) and breed (x3)
+######
+
+#Step 0: Cleaning: change breed_name to a factor rather than a character varialbe
 distinct_dogz_reg = 
   distinct_dogz %>% 
   mutate(
+    breed_name = as.factor(breed_name)
+  )
+distinct_dogz_reg
+```
+
+```{r}
+#create reference groups that are coded as 
+distinct_dogz_reg = 
+  distinct_dogz_reg %>% 
+  mutate(
     borough = fct_infreq(borough),
-    animal_gender = fct_infreq(animal_gender)
-    
+    animal_gender = fct_infreq(animal_gender),
+    breed_name = fct_infreq(breed_name)
     )
+#run linear regression with dog age as Y and borough, breed name and animal gender as categorical
+fit = lm(dog_age ~ borough + animal_gender, data = distinct_dogz)
 
-fit = lm(dog_age ~ borough + breed_name + animal_gender, data = distinct_dogz)
+#view outputs
+fit %>% 
+  broom::tidy()
 
+#create tidy table
+fit %>% 
+  broom::tidy() %>% 
+  select(term, estimate, p.value) %>% 
+  knitr::kable(digits = 3)
+```
 
+```{r, include=FALSE}
+#model residuals 
+modelr::add_residuals(distinct_dogz_reg, fit)
+```
+
+```{r}
+#graph residuals for each borough
+distinct_dogz_reg %>% 
+  modelr::add_residuals(fit) %>% 
+  ggplot(aes(x = borough, y = resid)) + geom_violin()
 ```
 
 
