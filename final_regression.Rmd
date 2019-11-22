@@ -1,0 +1,31 @@
+---
+title: "final_regression"
+author: "Mary Knoop"
+date: "11/22/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#predict the age of the dog (y) if you know the boro (x1) and gender (x2) and breed (x3)
+
+#change breed_name to a factor rather than a character varialbe
+
+#create reference groups that are coded as 0
+distinct_dogz_reg = 
+  distinct_dogz %>% 
+  mutate(
+    borough = fct_infreq(borough),
+    animal_gender = fct_infreq(animal_gender)
+    
+    )
+
+fit = lm(dog_age ~ borough + breed_name + animal_gender, data = distinct_dogz)
+
+
+```
+
+
