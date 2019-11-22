@@ -111,3 +111,5 @@ distinct_dogz =
 ```
 
 Plot \#1: Dogs in New York City
+
+Plot \#2 Gender of dogs by borough
