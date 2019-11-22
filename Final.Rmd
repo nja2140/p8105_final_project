@@ -20,6 +20,11 @@ dogz = read.csv("./data/NYC_Dog_Licensing_Dataset.csv") %>%
          borough = ifelse(zip_code %in% c(10301:10314), "Staten Island", borough),
          borough = ifelse(zip_code %in% c(10451:10475), "Bronx", borough),
          borough = ifelse(zip_code %in% c(11004,11101:11106,11109,11351,11354:11375,11377:11379,11385,11411:11423,11426:11430,11432:11436,11691:11694,11697), "Queens", borough),
+<<<<<<< HEAD
+         borough = ifelse(zip_code %in% c(11201,11203:11226,11228:11239,11241:11243,11249,11252,11256), "Brooklyn", borough)) %>% 
+  rename(animal_birth_year = animal_birth_month, license_id = row_number)
+dogz
+=======
          borough = ifelse(zip_code %in% c(11201,11203:11226,11228:11239,11241:11243,11249,11252,11256), "Brooklyn", borough),
          borough = as.factor(borough),
          breed_name = as.character(breed_name),
@@ -60,6 +65,7 @@ dogz = read.csv("./data/NYC_Dog_Licensing_Dataset.csv") %>%
   select(-extract_year)
 
 head(dogz)
+>>>>>>> 90a11f91e914de079f170dba82a9f34f9e08d68e
 ```
 
 ```{r}
