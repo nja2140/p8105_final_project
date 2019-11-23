@@ -56,6 +56,7 @@ dogz = read.csv("./data/NYC_Dog_Licensing_Dataset.csv") %>%
          breed_name = ifelse(breed_name == "Schnauzer, Giant", "Giant Schnauzer", breed_name),
          breed_name = ifelse(breed_name == "Schnauzer, Standard", "Standard Schnauzer", breed_name),
          breed_name = ifelse(breed_name == "Chinese Shar-Pei", "Shar-Pei, Chinese", breed_name)) %>% 
+  drop_na(borough) %>% 
   rename(animal_birth_year = animal_birth_month, license_id = row_number) %>% 
   select(-extract_year)
 
@@ -72,4 +73,51 @@ distinct_dogz =
 Plot #1: Dogs in New York City
 
 Plot #2 Gender of dogs by borough
+```{r}
+plot_2=
+  ggplot(distinct_dogz, aes(x = borough, y = animal_gender)) +
+  geom_col(position = "stack") +
+  labs(
+    title = "Gender of dogs by borough",
+    x = "New York Borough",
+    y = "Dog Gender"
+  )
+plot_2
+```
+
+
+Plot #3: Age distribution of dogs by boroughs 
+
+```{r}
+plot_3=
+  ggplot(distinct_dogz, aes(x = borough, y = dog_age)) +
+  geom_violin (color = "pink") +
+  labs(
+    title = "Age distribution of dogs by borough",
+    x = "New York Borough",
+    y = "Dog's Age"
+  )
+plot_3
+```
+
+
+Plot #4: Breed of dogs by borough
+```{r}
+plot_4 = 
+  distinct_dogz %>% 
+  top_n(10) %>% 
+  ggplot(aes(x = borough, y = breed_name)) +
+  geom_point() +
+  labs(
+    title = "Top 10 breeds of dogs by borough",
+    x = "New York Borough",
+    y = "Dog Breed"
+  )
+plot_4
+```
+
+
+
+
+
 
