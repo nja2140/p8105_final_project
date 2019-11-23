@@ -8,6 +8,7 @@ output: github_document
 ```{r setup}
 library(tidyverse)
 library(lubridate)
+lat_lon = read.csv("./data/lat-long.csv")
 ```
 
 ```{r}
@@ -64,13 +65,19 @@ head(dogz)
 ```
 
 ```{r}
-distinct_dogz =
+dogz_1 =
   dogz %>% 
   distinct(animal_name, animal_gender, animal_birth_year, breed_name, .keep_all = TRUE) %>% 
   select (-license_issued_date, -license_expired_date, -license_length)
+
+distinct_dogz =
+  left_join(dogz_1, lat_lon, by = "zip_code") %>% 
+  select(-City,-State,-Timezone,-Daylight.savings.time.flag,-geopoint) %>% 
+  janitor::clean_names()
 ```
 
 Plot #1: Dogs in New York City
+
 
 Plot #2 Gender of dogs by borough
 ```{r}
@@ -159,7 +166,7 @@ plot_5.51=
          license_issued_date = factor(license_issued_date, c("Jan","Feb", "Mar", "Apr", "May", "Jun", "Jul","Aug", "Sep", "Oct","Nov", "Dec"), ordered = TRUE)) %>%
   group_by(license_issued_date) %>% 
   summarize(n_obs = n()) %>% 
-      ggplot(aes(x = license_issued_date, y = n_obs, color = n_obs)) + 
+      ggplot(aes(x = license_issued_date, y = n_obs)) + 
       geom_point() + geom_line(group=1) +
       labs(title = "Number of licenses issued per month", 
       x = "License issue date", 
@@ -172,6 +179,7 @@ Plot #6 Most popular dog name by birth year
 Top 10 dog names, all time
 
 ```{r}
+top_dogz =
 distinct_dogz %>% 
   filter(animal_name != "Unknown",
          animal_name != "Name not provided") %>% 
@@ -179,6 +187,8 @@ distinct_dogz %>%
   summarize(n_obs = n()) %>% 
   arrange(desc(n_obs)) %>% 
   top_n(10)
+
+knitr::kable(top_dogz)
 ```
 
 Top name by birth year
@@ -202,16 +212,40 @@ plot_6
 
 Plot #7 Average age of dog
 
+This setion might be problematic - we'd be making a big assumption that all dogs are still alive! we could make a new variable for age at first license, or age at data extraction
+
 ```{r}
+#average dog age.
+distinct_dogz %>% 
+  summarize(avg_age = mean(dog_age))
+
+#average age by breed.
 distinct_dogz %>% 
   group_by(breed_name) %>% 
   summarize (avg_age = mean(dog_age)) %>% 
   arrange(desc(avg_age))
+
+#10 oldest breeds.
+distinct_dogz %>% 
+  group_by(breed_name) %>% 
+  summarize (avg_age = mean(dog_age)) %>% 
+  arrange(desc(avg_age)) %>% 
+  top_n(10)
 ```
 
+Plot #8 Avg age of dog by zip - trying to map by lat/long of zip codes but it doesnt look like much
 
-Plot #8 Ranking of dog breeds per age (which dogs live the longest?)
+```{r}
+#average age by zip code.
+distinct_dogz %>% 
+  group_by(zip_code) %>% 
+  summarize (avg_age = mean(dog_age))
 
-
+distinct_dogz %>% 
+  select(zip_code, borough, dog_age, latitude, longitude) %>% 
+  filter(borough == "Manhattan") %>% 
+  ggplot(aes(x = longitude, y = latitude, color = dog_age)) +
+  geom_point()
+```
 
 

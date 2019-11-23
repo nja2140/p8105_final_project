@@ -30,6 +30,10 @@ library(lubridate)
     ##     date
 
 ``` r
+lat_lon = read.csv("./data/lat-long.csv")
+```
+
+``` r
 dogz = read.csv("./data/NYC_Dog_Licensing_Dataset.csv") %>% 
   janitor::clean_names() %>% 
   filter(breed_name != "Unknown",
@@ -105,10 +109,15 @@ head(dogz)
     ## 6          2014-09-12           2019-10-01              5       7
 
 ``` r
-distinct_dogz =
+dogz_1 =
   dogz %>% 
   distinct(animal_name, animal_gender, animal_birth_year, breed_name, .keep_all = TRUE) %>% 
   select (-license_issued_date, -license_expired_date, -license_length)
+
+distinct_dogz =
+  left_join(dogz_1, lat_lon, by = "zip_code") %>% 
+  select(-City,-State,-Timezone,-Daylight.savings.time.flag,-geopoint) %>% 
+  janitor::clean_names()
 ```
 
 Plot \#1: Dogs in New York City
@@ -160,7 +169,7 @@ plot_4 =
   )
 ```
 
-    ## Selecting by dog_age
+    ## Selecting by longitude
 
 ``` r
 plot_4
@@ -215,7 +224,7 @@ plot_5.51=
          license_issued_date = factor(license_issued_date, c("Jan","Feb", "Mar", "Apr", "May", "Jun", "Jul","Aug", "Sep", "Oct","Nov", "Dec"), ordered = TRUE)) %>%
   group_by(license_issued_date) %>% 
   summarize(n_obs = n()) %>% 
-      ggplot(aes(x = license_issued_date, y = n_obs, color = n_obs)) + 
+      ggplot(aes(x = license_issued_date, y = n_obs)) + 
       geom_point() + geom_line(group=1) +
       labs(title = "Number of licenses issued per month", 
       x = "License issue date", 
@@ -230,6 +239,7 @@ Plot \#6 Most popular dog name by birth year
 Top 10 dog names, all time
 
 ``` r
+top_dogz =
 distinct_dogz %>% 
   filter(animal_name != "Unknown",
          animal_name != "Name not provided") %>% 
@@ -241,19 +251,22 @@ distinct_dogz %>%
 
     ## Selecting by n_obs
 
-    ## # A tibble: 10 x 2
-    ##    animal_name n_obs
-    ##    <chr>       <int>
-    ##  1 Max           720
-    ##  2 Charlie       696
-    ##  3 Bella         667
-    ##  4 Coco          633
-    ##  5 Lucy          568
-    ##  6 Lola          539
-    ##  7 Rocky         535
-    ##  8 Bailey        529
-    ##  9 Buddy         503
-    ## 10 Lucky         497
+``` r
+knitr::kable(top_dogz)
+```
+
+| animal\_name | n\_obs |
+| :----------- | -----: |
+| Max          |    720 |
+| Charlie      |    696 |
+| Bella        |    667 |
+| Coco         |    633 |
+| Lucy         |    568 |
+| Lola         |    539 |
+| Rocky        |    535 |
+| Bailey       |    529 |
+| Buddy        |    503 |
+| Lucky        |    497 |
 
 Top name by birth year
 
@@ -283,7 +296,21 @@ plot_6
 
 Plot \#7 Average age of dog
 
+This setion might be problematic - we’d be making a big assumption that
+all dogs are still alive\! we could make a new variable for age at first
+license, or age at data extraction
+
 ``` r
+#average dog age.
+distinct_dogz %>% 
+  summarize(avg_age = mean(dog_age))
+```
+
+    ##   avg_age
+    ## 1 7.11866
+
+``` r
+#average age by breed.
 distinct_dogz %>% 
   group_by(breed_name) %>% 
   summarize (avg_age = mean(dog_age)) %>% 
@@ -305,4 +332,64 @@ distinct_dogz %>%
     ## 10 Poodle, Standard           10.5
     ## # ... with 283 more rows
 
-Plot \#8 Ranking of dog breeds per age (which dogs live the longest?)
+``` r
+#10 oldest breeds.
+distinct_dogz %>% 
+  group_by(breed_name) %>% 
+  summarize (avg_age = mean(dog_age)) %>% 
+  arrange(desc(avg_age)) %>% 
+  top_n(10)
+```
+
+    ## Selecting by avg_age
+
+    ## # A tibble: 10 x 2
+    ##    breed_name              avg_age
+    ##    <chr>                     <dbl>
+    ##  1 Belgian Tervuren           11.9
+    ##  2 Miniature Fox Terrier      11  
+    ##  3 Peruvian Inca Orchid       11  
+    ##  4 Russian Wolfhound          11  
+    ##  5 Puli                       10.8
+    ##  6 Gordon Setter              10.7
+    ##  7 West High White Terrier    10.7
+    ##  8 Dachshund Smooth Coat      10.7
+    ##  9 Sussex Spaniel             10.5
+    ## 10 Poodle, Standard           10.5
+
+Plot \#8 Avg age of dog by zip - trying to map by lat/long of zip codes
+but it doesnt look like much
+
+``` r
+#average age by zip code.
+distinct_dogz %>% 
+  group_by(zip_code) %>% 
+  summarize (avg_age = mean(dog_age))
+```
+
+    ## # A tibble: 211 x 2
+    ##    zip_code avg_age
+    ##       <int>   <dbl>
+    ##  1    10001    6.64
+    ##  2    10002    6.93
+    ##  3    10003    7.15
+    ##  4    10004    6.54
+    ##  5    10005    6.29
+    ##  6    10006    6.44
+    ##  7    10007    6.69
+    ##  8    10008   11   
+    ##  9    10009    7.08
+    ## 10    10010    7.13
+    ## # ... with 201 more rows
+
+``` r
+distinct_dogz %>% 
+  select(zip_code, borough, dog_age, latitude, longitude) %>% 
+  filter(borough == "Manhattan") %>% 
+  ggplot(aes(x = longitude, y = latitude, color = dog_age)) +
+  geom_point()
+```
+
+    ## Warning: Removed 2065 rows containing missing values (geom_point).
+
+![](Final_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
