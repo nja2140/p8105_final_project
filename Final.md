@@ -7,16 +7,16 @@ Data Sci Doggos
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ─────────────────────────────────────────────────────── tidyverse 1.2.1 ──
+    ## -- Attaching packages --------------------------------------- tidyverse 1.2.1 --
 
-    ## ✔ ggplot2 3.2.0     ✔ purrr   0.3.2
-    ## ✔ tibble  2.1.1     ✔ dplyr   0.8.3
-    ## ✔ tidyr   1.0.0     ✔ stringr 1.4.0
-    ## ✔ readr   1.3.1     ✔ forcats 0.4.0
+    ## v ggplot2 3.2.1     v purrr   0.3.2
+    ## v tibble  2.1.3     v dplyr   0.8.3
+    ## v tidyr   1.0.0     v stringr 1.4.0
+    ## v readr   1.3.1     v forcats 0.4.0
 
-    ## ── Conflicts ────────────────────────────────────────────────────────── tidyverse_conflicts() ──
-    ## ✖ dplyr::filter() masks stats::filter()
-    ## ✖ dplyr::lag()    masks stats::lag()
+    ## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+    ## x dplyr::filter() masks stats::filter()
+    ## x dplyr::lag()    masks stats::lag()
 
 ``` r
 library(lubridate)
@@ -167,3 +167,142 @@ plot_4
 ```
 
 ![](Final_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
+Plot \#5 License issue date (are there peak times of the year when
+people license date) I made three plot options - I think the last two
+are the most useful
+
+Scatter plot with all dates
+
+``` r
+plot_5 =
+dogz %>% 
+group_by(license_issued_date) %>% 
+  summarize(n_obs = n()) %>% 
+    ggplot(aes(x = license_issued_date, y = n_obs, color = n_obs)) + 
+    geom_point() +
+    labs(title = "Number of licenses over time", 
+    x = "License issue date", 
+    y = "Number of licenses")
+plot_5
+```
+
+![](Final_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
+Line - condensed to months/years, this one might be more clear\!
+
+``` r
+plot_5.5=
+  dogz %>% 
+  mutate(license_issued_date = floor_date(as_date(license_issued_date), "month")) %>% 
+  group_by(license_issued_date) %>% 
+  summarize(n_obs = n()) %>% 
+      ggplot(aes(x = license_issued_date, y = n_obs, color = n_obs)) + 
+      geom_point() + geom_line() +
+      labs(title = "Number of licenses over time", 
+      x = "License issue date", 
+      y = "Number of licenses")
+plot_5.5
+```
+
+![](Final_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+``` r
+plot_5.51=
+  dogz %>% 
+  mutate(license_issued_date = month(license_issued_date),
+         license_issued_date = month.abb[license_issued_date],
+         license_issued_date = factor(license_issued_date, c("Jan","Feb", "Mar", "Apr", "May", "Jun", "Jul","Aug", "Sep", "Oct","Nov", "Dec"), ordered = TRUE)) %>%
+  group_by(license_issued_date) %>% 
+  summarize(n_obs = n()) %>% 
+      ggplot(aes(x = license_issued_date, y = n_obs, color = n_obs)) + 
+      geom_point() + geom_line(group=1) +
+      labs(title = "Number of licenses issued per month", 
+      x = "License issue date", 
+      y = "Number of licenses")
+plot_5.51
+```
+
+![](Final_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+Plot \#6 Most popular dog name by birth year
+
+Top 10 dog names, all time
+
+``` r
+distinct_dogz %>% 
+  filter(animal_name != "Unknown",
+         animal_name != "Name not provided") %>% 
+  group_by(animal_name) %>% 
+  summarize(n_obs = n()) %>% 
+  arrange(desc(n_obs)) %>% 
+  top_n(10)
+```
+
+    ## Selecting by n_obs
+
+    ## # A tibble: 10 x 2
+    ##    animal_name n_obs
+    ##    <chr>       <int>
+    ##  1 Max           720
+    ##  2 Charlie       696
+    ##  3 Bella         667
+    ##  4 Coco          633
+    ##  5 Lucy          568
+    ##  6 Lola          539
+    ##  7 Rocky         535
+    ##  8 Bailey        529
+    ##  9 Buddy         503
+    ## 10 Lucky         497
+
+Top name by birth year
+
+``` r
+plot_6 = 
+distinct_dogz %>% 
+  filter(animal_name != "Unknown",
+         animal_name != "Name not provided",
+         animal_name != "Name",
+         animal_birth_year != 1997) %>% 
+  group_by(animal_birth_year, animal_name) %>% 
+  summarize(n_obs = n()) %>% 
+  top_n(1) %>% 
+    ggplot(aes(x=animal_birth_year, y=n_obs, group = animal_name, color = animal_name)) + geom_point() + geom_line() +
+  labs(title = "Top name by birth year", 
+    x = "Birth year", 
+    y = "Number of dogs")
+```
+
+    ## Selecting by n_obs
+
+``` r
+plot_6
+```
+
+![](Final_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+Plot \#7 Average age of dog
+
+``` r
+distinct_dogz %>% 
+  group_by(breed_name) %>% 
+  summarize (avg_age = mean(dog_age)) %>% 
+  arrange(desc(avg_age))
+```
+
+    ## # A tibble: 293 x 2
+    ##    breed_name              avg_age
+    ##    <chr>                     <dbl>
+    ##  1 Belgian Tervuren           11.9
+    ##  2 Miniature Fox Terrier      11  
+    ##  3 Peruvian Inca Orchid       11  
+    ##  4 Russian Wolfhound          11  
+    ##  5 Puli                       10.8
+    ##  6 Gordon Setter              10.7
+    ##  7 West High White Terrier    10.7
+    ##  8 Dachshund Smooth Coat      10.7
+    ##  9 Sussex Spaniel             10.5
+    ## 10 Poodle, Standard           10.5
+    ## # ... with 283 more rows
+
+Plot \#8 Ranking of dog breeds per age (which dogs live the longest?)

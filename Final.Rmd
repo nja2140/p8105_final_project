@@ -116,7 +116,101 @@ plot_4 =
 plot_4
 ```
 
+Plot #5 License issue date (are there peak times of the year when people license date)
+I made three plot options - I think the last two are the most useful
 
+Scatter plot with all dates
+
+```{r}
+plot_5 =
+dogz %>% 
+group_by(license_issued_date) %>% 
+  summarize(n_obs = n()) %>% 
+    ggplot(aes(x = license_issued_date, y = n_obs, color = n_obs)) + 
+    geom_point() +
+    labs(title = "Number of licenses over time", 
+    x = "License issue date", 
+    y = "Number of licenses")
+plot_5
+```
+
+Line - condensed to months/years, this one might be more clear!
+
+```{r}
+plot_5.5=
+  dogz %>% 
+  mutate(license_issued_date = floor_date(as_date(license_issued_date), "month")) %>% 
+  group_by(license_issued_date) %>% 
+  summarize(n_obs = n()) %>% 
+      ggplot(aes(x = license_issued_date, y = n_obs, color = n_obs)) + 
+      geom_point() + geom_line() +
+      labs(title = "Number of licenses over time", 
+      x = "License issue date", 
+      y = "Number of licenses")
+plot_5.5
+```
+
+
+```{r}
+plot_5.51=
+  dogz %>% 
+  mutate(license_issued_date = month(license_issued_date),
+         license_issued_date = month.abb[license_issued_date],
+         license_issued_date = factor(license_issued_date, c("Jan","Feb", "Mar", "Apr", "May", "Jun", "Jul","Aug", "Sep", "Oct","Nov", "Dec"), ordered = TRUE)) %>%
+  group_by(license_issued_date) %>% 
+  summarize(n_obs = n()) %>% 
+      ggplot(aes(x = license_issued_date, y = n_obs, color = n_obs)) + 
+      geom_point() + geom_line(group=1) +
+      labs(title = "Number of licenses issued per month", 
+      x = "License issue date", 
+      y = "Number of licenses")
+plot_5.51
+```
+
+Plot #6 Most popular dog name by birth year 
+
+Top 10 dog names, all time
+
+```{r}
+distinct_dogz %>% 
+  filter(animal_name != "Unknown",
+         animal_name != "Name not provided") %>% 
+  group_by(animal_name) %>% 
+  summarize(n_obs = n()) %>% 
+  arrange(desc(n_obs)) %>% 
+  top_n(10)
+```
+
+Top name by birth year
+
+```{r}
+plot_6 = 
+distinct_dogz %>% 
+  filter(animal_name != "Unknown",
+         animal_name != "Name not provided",
+         animal_name != "Name",
+         animal_birth_year != 1997) %>% 
+  group_by(animal_birth_year, animal_name) %>% 
+  summarize(n_obs = n()) %>% 
+  top_n(1) %>% 
+    ggplot(aes(x=animal_birth_year, y=n_obs, group = animal_name, color = animal_name)) + geom_point() + geom_line() +
+  labs(title = "Top name by birth year", 
+    x = "Birth year", 
+    y = "Number of dogs")
+plot_6
+```
+
+Plot #7 Average age of dog
+
+```{r}
+distinct_dogz %>% 
+  group_by(breed_name) %>% 
+  summarize (avg_age = mean(dog_age)) %>% 
+  arrange(desc(avg_age))
+```
+
+
+Plot #8 Ranking of dog breeds per age (which dogs live the longest?)
 
 
 
