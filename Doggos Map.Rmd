@@ -1,0 +1,27 @@
+---
+title: "Doggos Map"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+pal <- colorNumeric(
+  palette = "viridis", 
+  domain = distinct_dogz$license_id
+)
+
+distinct_dogz %>% 
+  select(license_id, borough, latitude, longitude) %>% 
+  leaflet() %>% 
+  addTiles () %>% 
+  addProviderTiles(providers$CartoDB.Positron) %>% 
+  addCircleMarkers(
+    ~latitude, ~longitude,
+    color = ~pal(license_id),
+    radius =1,
+    poopup = ~ label)
+```
+
