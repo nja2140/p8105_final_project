@@ -8,6 +8,8 @@ output: github_document
 ```{r setup}
 library(tidyverse)
 library(lubridate)
+library(viridis)
+library(leaflet)
 lat_lon = read.csv("./data/lat-long.csv")
 ```
 
@@ -76,14 +78,12 @@ distinct_dogz =
   janitor::clean_names()
 ```
 
-Plot #1: Dogs in New York City
-
-
-Plot #2 Gender of dogs by borough
+Plot #2 Gender of dogs by borough 
+NOTE: having issues with editing the legend
 ```{r}
 plot_2=
-  ggplot(distinct_dogz, aes(x = borough, y = animal_gender)) +
-  geom_col(position = "stack") +
+  ggplot(distinct_dogz, aes(x = borough, fill = animal_gender)) +
+  geom_histogram(position = "dodge", stat = "count") +
   labs(
     title = "Gender of dogs by borough",
     x = "New York Borough",
@@ -98,7 +98,7 @@ Plot #3: Age distribution of dogs by boroughs
 ```{r}
 plot_3=
   ggplot(distinct_dogz, aes(x = borough, y = dog_age)) +
-  geom_violin (color = "pink") +
+  geom_boxplot (color = "purple") +
   labs(
     title = "Age distribution of dogs by borough",
     x = "New York Borough",
@@ -109,16 +109,21 @@ plot_3
 
 
 Plot #4: Breed of dogs by borough
+
 ```{r}
-plot_4 = 
+plot_4=
   distinct_dogz %>% 
-  top_n(10) %>% 
-  ggplot(aes(x = borough, y = breed_name)) +
+  group_by(borough) %>% 
+  count(breed_name) %>% 
+  top_n(5) %>% 
+  ggplot(aes(x = breed_name, y = n)) +
   geom_point() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  facet_grid(~borough) +
   labs(
     title = "Top 10 breeds of dogs by borough",
-    x = "New York Borough",
-    y = "Dog Breed"
+    x = "Dog Breed",
+    y = "Total Count"
   )
 plot_4
 ```
