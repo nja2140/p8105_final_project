@@ -7,16 +7,16 @@ Data Sci Doggos
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ─────────────────────────────────────────────────────── tidyverse 1.2.1 ──
+    ## -- Attaching packages -------------------------------------------------------------------------------- tidyverse 1.2.1 --
 
-    ## ✔ ggplot2 3.2.0     ✔ purrr   0.3.2
-    ## ✔ tibble  2.1.1     ✔ dplyr   0.8.3
-    ## ✔ tidyr   1.0.0     ✔ stringr 1.4.0
-    ## ✔ readr   1.3.1     ✔ forcats 0.4.0
+    ## v ggplot2 3.2.1     v purrr   0.3.2
+    ## v tibble  2.1.3     v dplyr   0.8.3
+    ## v tidyr   1.0.0     v stringr 1.4.0
+    ## v readr   1.3.1     v forcats 0.4.0
 
-    ## ── Conflicts ────────────────────────────────────────────────────────── tidyverse_conflicts() ──
-    ## ✖ dplyr::filter() masks stats::filter()
-    ## ✖ dplyr::lag()    masks stats::lag()
+    ## -- Conflicts ----------------------------------------------------------------------------------- tidyverse_conflicts() --
+    ## x dplyr::filter() masks stats::filter()
+    ## x dplyr::lag()    masks stats::lag()
 
 ``` r
 library(lubridate)
@@ -89,31 +89,7 @@ dogz = read.csv("./data/NYC_Dog_Licensing_Dataset.csv") %>%
   drop_na(borough) %>% 
   rename(animal_birth_year = animal_birth_month, license_id = row_number) %>% 
   select(-extract_year)
-
-head(dogz)
 ```
-
-    ##   license_id animal_name animal_gender animal_birth_year
-    ## 1          1       Paige             F              2014
-    ## 2          2        Yogi             M              2010
-    ## 3          3         Ali             M              2014
-    ## 4          4       Queen             F              2013
-    ## 5          5        Lola             F              2009
-    ## 6          8   Chewbacca             F              2012
-    ##                             breed_name   borough zip_code
-    ## 1 American Pit Bull Mix / Pit Bull Mix Manhattan    10035
-    ## 2                                Boxer     Bronx    10465
-    ## 3                              Basenji Manhattan    10013
-    ## 4                     Akita Crossbreed Manhattan    10013
-    ## 5                              Maltese Manhattan    10028
-    ## 6        Labrador Retriever Crossbreed Manhattan    10013
-    ##   license_issued_date license_expired_date license_length dog_age
-    ## 1          2014-09-12           2017-09-12              3       5
-    ## 2          2014-09-12           2017-10-02              3       9
-    ## 3          2014-09-12           2019-09-12              5       5
-    ## 4          2014-09-12           2017-09-12              3       6
-    ## 5          2014-09-12           2017-10-09              3      10
-    ## 6          2014-09-12           2019-10-01              5       7
 
 ``` r
 dogz_1 =
@@ -231,6 +207,8 @@ plot_5.5
 
 ![](Final_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
+# monthly trends, might be the most useful realistically
+
 ``` r
 plot_5.51=
   dogz %>% 
@@ -345,7 +323,7 @@ distinct_dogz %>%
     ##  8 Dachshund Smooth Coat      10.7
     ##  9 Sussex Spaniel             10.5
     ## 10 Poodle, Standard           10.5
-    ## # … with 283 more rows
+    ## # ... with 283 more rows
 
 ``` r
 #10 oldest breeds.
@@ -395,7 +373,7 @@ distinct_dogz %>%
     ##  8    10008   11   
     ##  9    10009    7.08
     ## 10    10010    7.13
-    ## # … with 201 more rows
+    ## # ... with 201 more rows
 
 ``` r
 distinct_dogz %>% 
@@ -408,3 +386,60 @@ distinct_dogz %>%
     ## Warning: Removed 2065 rows containing missing values (geom_point).
 
 ![](Final_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+
+# Regression
+
+``` r
+#create reference groups that are coded as 
+distinct_dogz_reg = 
+  distinct_dogz_reg %>% 
+  mutate(
+    borough = fct_infreq(borough),
+    animal_gender = fct_infreq(animal_gender),
+    breed_name = fct_infreq(breed_name)
+    )
+#run linear regression with dog age as Y and borough, breed name and animal gender as categorical
+fit = lm(dog_age ~ borough + animal_gender, data = distinct_dogz)
+
+#view outputs
+fit %>% 
+  broom::tidy()
+```
+
+    ## # A tibble: 7 x 5
+    ##   term                 estimate std.error statistic   p.value
+    ##   <chr>                   <dbl>     <dbl>     <dbl>     <dbl>
+    ## 1 (Intercept)           16.5       2.00        8.27 1.30e- 16
+    ## 2 boroughBrooklyn        0.0510    0.0457      1.11 2.65e-  1
+    ## 3 boroughManhattan       0.520     0.0439     11.8  2.82e- 32
+    ## 4 boroughQueens          0.473     0.0479      9.88 5.42e- 23
+    ## 5 boroughStaten Island   1.25      0.0588     21.2  9.03e-100
+    ## 6 animal_genderF        -9.72      2.00       -4.86 1.16e-  6
+    ## 7 animal_genderM        -9.89      2.00       -4.95 7.47e-  7
+
+``` r
+#create tidy table
+fit %>% 
+  broom::tidy() %>% 
+  select(term, estimate, p.value) %>% 
+  knitr::kable(digits = 3)
+```
+
+| term                 | estimate | p.value |
+| :------------------- | -------: | ------: |
+| (Intercept)          |   16.541 |   0.000 |
+| boroughBrooklyn      |    0.051 |   0.265 |
+| boroughManhattan     |    0.520 |   0.000 |
+| boroughQueens        |    0.473 |   0.000 |
+| boroughStaten Island |    1.247 |   0.000 |
+| animal\_genderF      |  \-9.717 |   0.000 |
+| animal\_genderM      |  \-9.892 |   0.000 |
+
+``` r
+#graph residuals for each borough
+distinct_dogz_reg %>% 
+  modelr::add_residuals(fit) %>% 
+  ggplot(aes(x = borough, y = resid)) + geom_violin()
+```
+
+![](Final_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->

@@ -63,7 +63,6 @@ dogz = read.csv("./data/NYC_Dog_Licensing_Dataset.csv") %>%
   rename(animal_birth_year = animal_birth_month, license_id = row_number) %>% 
   select(-extract_year)
 
-head(dogz)
 ```
 
 ```{r}
@@ -80,6 +79,7 @@ distinct_dogz =
 
 Plot #2 Gender of dogs by borough 
 NOTE: having issues with editing the legend
+
 ```{r}
 plot_2=
   ggplot(distinct_dogz, aes(x = borough, fill = animal_gender)) +
@@ -162,6 +162,7 @@ plot_5.5=
 plot_5.5
 ```
 
+# monthly trends, might be the most useful realistically
 
 ```{r}
 plot_5.51=
@@ -251,6 +252,57 @@ distinct_dogz %>%
   filter(borough == "Manhattan") %>% 
   ggplot(aes(x = longitude, y = latitude, color = dog_age)) +
   geom_point()
+```
+
+
+# Regression
+
+```{r, include=FALSE}
+
+#Regression analysis: predict the age of the dog (y) if you know the boro (x1) and gender (x2) and breed (x3)
+
+#Step 0: Cleaning: change breed_name to a factor rather than a character varialbe
+distinct_dogz_reg = 
+  distinct_dogz %>% 
+  mutate(
+    breed_name = as.factor(breed_name)
+  )
+distinct_dogz_reg
+```
+
+```{r}
+#create reference groups that are coded as 
+distinct_dogz_reg = 
+  distinct_dogz_reg %>% 
+  mutate(
+    borough = fct_infreq(borough),
+    animal_gender = fct_infreq(animal_gender),
+    breed_name = fct_infreq(breed_name)
+    )
+#run linear regression with dog age as Y and borough, breed name and animal gender as categorical
+fit = lm(dog_age ~ borough + animal_gender, data = distinct_dogz)
+
+#view outputs
+fit %>% 
+  broom::tidy()
+
+#create tidy table
+fit %>% 
+  broom::tidy() %>% 
+  select(term, estimate, p.value) %>% 
+  knitr::kable(digits = 3)
+```
+
+```{r, include=FALSE}
+#model residuals 
+modelr::add_residuals(distinct_dogz_reg, fit)
+```
+
+```{r}
+#graph residuals for each borough
+distinct_dogz_reg %>% 
+  modelr::add_residuals(fit) %>% 
+  ggplot(aes(x = borough, y = resid)) + geom_violin()
 ```
 
 
