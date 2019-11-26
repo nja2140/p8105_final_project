@@ -39,7 +39,6 @@ pal = colorNumeric(
   domain = distinct_dogz$zip_code)
 
 distinct_dogz %>% 
- filter(borough %in% c("Manhattan")) %>% 
   na.omit(zip_code) %>% 
   sample_n(5000) %>% 
   mutate(click_label = str_c("<b> year(s)", dog_age, "</b><br>", animal_birth_year, "born <br>", animal_gender, " gender")) %>% 
