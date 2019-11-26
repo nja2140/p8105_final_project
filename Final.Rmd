@@ -305,4 +305,19 @@ distinct_dogz_reg %>%
   ggplot(aes(x = borough, y = resid)) + geom_violin()
 ```
 
+```{r}
+#pal <- colorNumeric(
+#  palette = "viridis",
+#  domain = distinct_dogz$dog_age)
+#
+#distinct_dogz %>% 
+#  filter(borough %in% c("Manhattan", "Brooklyn", "Queens")) %>% 
+#  na.omit(dog_age) %>% 
+#  sample_n(5000) %>% 
+#  mutate(click_label = str_c("<b>$", dog_age, "</b><br>", animal_birth_year, " year<br>", animal_gender, " gender")) %>% 
+#  leaflet() %>% 
+ # addProviderTiles(providers$CartoDB.Positron) %>% 
+ # addCircleMarkers(~longitude, ~latitude, radius = .1, color = ~pal(dog_age), popup = ~click_label)
+```
+
 
