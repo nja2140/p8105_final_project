@@ -82,7 +82,9 @@ NOTE: having issues with editing the legend
 
 ```{r}
 plot_2=
-  ggplot(distinct_dogz, aes(x = borough, fill = animal_gender)) +
+  distinct_dogz %>% 
+  filter(animal_gender == "M" | animal_gender == "F") %>% 
+  ggplot(aes(x = borough, fill = animal_gender)) +
   geom_histogram(position = "dodge", stat = "count") +
   labs(
     title = "Gender of dogs by borough",
