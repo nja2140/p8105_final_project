@@ -12,25 +12,13 @@ library(leaflet)
 lat_lon = read.csv("./data/lat-long.csv")
 ```
 
-
-Hi! I just commented out because it wasnt running
 ```{r}
-#pal <- colorNumeric(
-#  palette = "viridis", 
-#  domain = distinct_dogz$license_id
-#)
-
-#distinct_dogz %>% 
-#  select(license_id, borough, latitude, longitude) %>% 
-#  leaflet() %>% 
-#  addTiles () %>% 
-#  addProviderTiles(providers$CartoDB.Positron) %>% 
-#  addCircleMarkers(
-#    ~latitude, ~longitude,
-#    color = ~pal(license_id),
-#    radius =1,
-#    poopup = ~ label)
+distinct_dogz %>% 
+  drop_na() %>% 
+  select(latitude, longitude, license_id, zip_code) %>% 
+  group_by(zip_code)
 ```
+
 
 This code runs. Dont really like it though. 
 ```{r}
@@ -39,40 +27,38 @@ pal = colorNumeric(
   domain = distinct_dogz$zip_code)
 
 distinct_dogz %>% 
-  na.omit(zip_code) %>% 
-  sample_n(5000) %>% 
+  group_by(breed_name) %>% 
   mutate(click_label = str_c("<b> year(s)", dog_age, "</b><br>", animal_birth_year, "born <br>", animal_gender, " gender")) %>% 
   leaflet() %>% 
   addProviderTiles(providers$CartoDB.Positron) %>% 
   addCircleMarkers(~longitude, ~latitude, radius = .1, color = ~pal(zip_code), popup = ~click_label)
 ```
 
+
+
 ```{r}
 dogz_map_data = 
   distinct_dogz %>% 
+  select(latitude, longitude, license_id, zip_code) %>% 
   mutate(
     license_id = as.numeric(license_id),
     zip_code = as.numeric(zip_code)
   ) %>%
-  
-dogz_map_data %>%
   group_by(zip_code) %>% 
-  summarize (n_obs = n())
- 
+  summarize(n = n()) 
+
 
 pal = colorNumeric(
   palette = "viridis",
   domain = dogz_map_data$zip_code)
 
 dogz_map_data %>% 
- filter(borough %in% c("Manhattan")) %>% 
   na.omit(zip_code) %>% 
-  #sample_n(5000) %>% 
-  mutate(click_label = str_c("<b> year(s)", dog_age, "</b><br>", animal_birth_year, "born <br>", animal_gender, " gender")) %>% 
   leaflet() %>% 
   addProviderTiles(providers$CartoDB.Positron) %>% 
-  addCircleMarkers(~longitude, ~latitude, radius = .1, color = ~pal(n_obs), popup = ~click_label)
+  addCircleMarkers(~longitude, ~latitude, radius = .1, color = ~pal(zip_code))
 ```
+
 
 
 
