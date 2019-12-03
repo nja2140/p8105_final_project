@@ -35,7 +35,7 @@ distinct_dogz %>%
 ```
 
 
-
+Trying to get a more interesting map, but its not working
 ```{r}
 dogz_map_data = 
   distinct_dogz %>% 
