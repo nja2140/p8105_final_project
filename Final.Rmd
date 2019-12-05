@@ -298,6 +298,7 @@ distinct_dogz %>%
     x = "Birth year", 
     y = "Number of dogs")
 plot_6
+<<<<<<< HEAD
 
 ```
 
@@ -310,6 +311,11 @@ $~$
 Refer to Doggos Map RMD for the code. 
 
 From this map, we can visually see the spread of where the licensed dogs in the five NYC boroughs are located. This map provides supporting evidnece of previous findings in which we saw that the Manhattan borough has the largest number of licesned dogs as compared to the other boroughs. Additionally, we can begin to see some visual clustering within each borough of where the licensed dogs are more likely to be living. For example, some clustering can be seen at the bottom tip of Manhattan, and around midtown.
+=======
+```
+
+# Regression Model 
+>>>>>>> e45d809d4ccba7d151778fdf0484cd2c88c23f0b
 
 $~$
 
