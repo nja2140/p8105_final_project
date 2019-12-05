@@ -218,46 +218,7 @@ distinct_dogz %>%
 plot_6
 ```
 
-Plot #7 Average age of dog
-
-This setion might be problematic - we'd be making a big assumption that all dogs are still alive! we could make a new variable for age at first license, or age at data extraction
-
-```{r}
-#average dog age.
-distinct_dogz %>% 
-  summarize(avg_age = mean(dog_age))
-
-#average age by breed.
-distinct_dogz %>% 
-  group_by(breed_name) %>% 
-  summarize (avg_age = mean(dog_age)) %>% 
-  arrange(desc(avg_age))
-
-#10 oldest breeds.
-distinct_dogz %>% 
-  group_by(breed_name) %>% 
-  summarize (avg_age = mean(dog_age)) %>% 
-  arrange(desc(avg_age)) %>% 
-  top_n(10)
-```
-
-Plot #8 Avg age of dog by zip - trying to map by lat/long of zip codes but it doesnt look like much
-
-```{r}
-#average age by zip code.
-distinct_dogz %>% 
-  group_by(zip_code) %>% 
-  summarize (avg_age = mean(dog_age))
-
-distinct_dogz %>% 
-  select(zip_code, borough, dog_age, latitude, longitude) %>% 
-  filter(borough == "Manhattan") %>% 
-  ggplot(aes(x = longitude, y = latitude, color = dog_age)) +
-  geom_point()
-```
-
-
-# Regression
+# Regression Model 
 
 ```{r, include=FALSE}
 
