@@ -1,19 +1,74 @@
 ---
-title: "Final project"
-author: "Data Sci Doggos"
-date: "11/17/2019"
-output: github_document
+title: "Project Report: Data Sci Doggos"
+author: "Naina Ahuja, Mary Knoop, Sam Loewen, Uma Palaniappan, Britney Mazzetta"
+date: "December 5, 2019"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: journal
+    code_folding: hide
 ---
 
-```{r setup}
+```{r setup, message = FALSE, results = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(lubridate)
 library(viridis)
 library(leaflet)
-lat_lon = read.csv("./data/lat-long.csv")
+lat_long = read.csv("./data/lat-long.csv")
 ```
 
-```{r}
+$~$
+
+# Motivation
+
+The motivation of this project was to use the data, the New York City (NYC) Department of Health and Mental Hygience (DOHMH) Dog Licensing Dataset. This dataset spans the five boroughs of NYC and will help to deepen our understanding of the current patterns and trends among canines in NYC. 
+
+$~$
+
+# Related Work
+
+We were inspired to work on this project given our collective love for dogs. We were further intrigued to understand the current distribution and trends of dogs within NYC. Drawing inspiration from the NYC Air BnB dataset modeled in class, we realized we could perform similar analyses with this database to better understand what the current licensed dog landscape in NYC looks like. We thought that this website would be a knowledge base for any individual who would like to learn more about what having a dog in NYC is like.  
+
+$~$
+
+# Initial Questions
+
+We sought to understand the current landscape of licensed dogs in New York City. Additionally, we were also interested in comparing these demographic factors among the five boroughs. Furthermore, we wanted to dive into the current patterns of licensing between 2017 - 2019 and examine if there were variations by year or month of license. Finally, we sought to find ways of predicting a dog’s age based on the borough and the gender of the dog. Based on this information, our questions are:  
+
+* How can we better understand and visualize dog distributions by borough in NYC?
+* What are the trends of dog licenses by year and/or month in NYC?
+* How can we predict dog age based on borough and gender of the dog? 
+
+$~$
+
+# Data
+
+We utilized the NYC Dog Licensing dataset. All dog owners who reside in NYC are required by law to license their dogs. These licenses can range from one to three years; owners are able to choose when they purchase one. This is a publicly available dataset sourced from the DOHMH Dog Licensing System where owners apply for and renew dog licenses. This dataset was created on September 19, 2017 and was last updated on July 25, 2019. There are 10 variables in this dataset with a raw number of 345,727 observations. The variables provided in the raw dataset are as follows: 
+
+* RowNumber: Row Number 
+* AnimalName: User-provided dog name (unless specified otherwise) 
+* AnimalGender: M(Male) or F(Female) dog gender 
+* AnimalBirthMonth: Month and year dog was born 
+* BreedName: Dog Breed 
+* Borough: Owner Borough 
+* ZipCode: Owner Zip Code 
+* LiscenceIssuedDate: Date the dog license was issued 
+* LiscenceExpiredDate: Date the dog license expires 
+* Extract Year: Year Data was extracted
+
+$~$
+
+# Exploratory Analysis
+
+$~$
+
+### Loading and Cleaning Data
+
+```{r load, cache = TRUE, warning = FALSE, message = FALSE}
+lat_lon = read.csv("./data/lat-long.csv")
+
 dogz = read.csv("./data/NYC_Dog_Licensing_Dataset.csv") %>% 
   janitor::clean_names() %>% 
   filter(breed_name != "Unknown",
@@ -62,8 +117,8 @@ dogz = read.csv("./data/NYC_Dog_Licensing_Dataset.csv") %>%
   drop_na(borough) %>% 
   rename(animal_birth_year = animal_birth_month, license_id = row_number) %>% 
   select(-extract_year)
-
 ```
+
 
 ```{r}
 dogz_1 =
@@ -77,10 +132,17 @@ distinct_dogz =
   janitor::clean_names()
 ```
 
-Plot #2 Gender of dogs by borough 
-NOTE: having issues with editing the legend
+The dataset was cleaned and adjusted for this analysis. All dogs whose breed were listed as "unknown" were removed, as well as any dogs who were listed as over 20 years old at the time of their license. Originally there were no boroughs listed in this dataset, so we used the available zip codes to assign boroughs to each record. Records whose zip code did not correlate to a borough were dropped. A variable `license_length` was added to calculate the length in years of each license. There were slight differences in the way breed names were recorded, these were adjusted to be uniform.
 
-```{r}
+Variables were changed to the appropriate data type where necessary.
+
+The main database included the same dog multiple times if it had more than one license. We created a subset to catalog only the distinct dogs present in our dataset. To identify individual dogs we matched records on animal name, gender, birth year, and breed name. We also added latitude and longitude data that corresponds to zip code for mapping purposes.
+
+$~$
+
+### Gender of dogs by borough
+
+```{r, warning = FALSE}
 plot_2=
   distinct_dogz %>% 
   filter(animal_gender == "M" | animal_gender == "F") %>% 
@@ -89,17 +151,23 @@ plot_2=
   labs(
     title = "Gender of dogs by borough",
     x = "New York Borough",
-    y = "Dog Gender"
+    y = "Number of dogs"
   )
+
 plot_2
 ```
 
+Based on this bar graph plotting borough by frequency of dogs, we can see that overall, Manhattan has the most dogs (over 20,000 dogs for each gender) followed by Brooklyn, Queens, The Bronx, and Staten Island (with about 5,000 dogs for each gender). Additionally, among all boroughs there are more male dogs than there are female dogs. 
 
-Plot #3: Age distribution of dogs by boroughs 
+$~$
+
+### Age Distribution of Dogs by Boroughs 
 
 ```{r}
 plot_3=
-  ggplot(distinct_dogz, aes(x = borough, y = dog_age)) +
+  distinct_dogz %>% 
+  filter(dog_age < 20) %>% 
+  ggplot(aes(x = borough, y = dog_age)) +
   geom_boxplot (color = "purple") +
   labs(
     title = "Age distribution of dogs by borough",
@@ -109,46 +177,50 @@ plot_3=
 plot_3
 ```
 
+Based on this box and whisker plot, which looks at dog’s age in years per borough, we can see that overall, the median age for dogs is about 6 years. The Bronx, Brooklyn, and Queens have similar distributions which are right skewed while Manhattan has a smaller range of values. Staten Island has the oldest dogs ranging above 10 years with no outliers shown. 
 
-Plot #4: Breed of dogs by borough
+$~$
 
-```{r}
+### Top Breed of Dogs by Age 
+
+```{r, message = FALSE}
+table2 = distinct_dogz %>% 
+  group_by(dog_age) %>% 
+  count(breed_name) %>% 
+  top_n(3)
+knitr::kable(table2)
+```
+
+In this table, we see the top 3 dog breeds for each dog aged 1 - 22 in the dataset. We can see that there are more larger dog breeds appearing as the top breed in some of the younger age categories. After 9 years, all of the top 3 dog breeds for each age consist of small dog breeds. This is consistent with literature findings that smaller dog breeds tend to live longer lives than larger dog breeds. In addition, we find that several dog breeds outshine others in being the top dog breed for many of the age categories including Chihuahua, Yorkshire Terrier, and American Pit Bull Mix / Pit Bull Mix.
+
+$~$
+
+
+### Top Breed of Dogs by Borough 
+
+```{r, message = FALSE}
 plot_4=
-  distinct_dogz %>% 
+distinct_dogz %>% 
   group_by(borough) %>% 
   count(breed_name) %>% 
   top_n(5) %>% 
   ggplot(aes(x = breed_name, y = n)) +
   geom_point() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  facet_grid(~borough) +
+  facet_grid(~borough, scales = "free", space = "free") +
   labs(
-    title = "Top 10 breeds of dogs by borough",
+    title = "Top 5 breeds of dogs by borough",
     x = "Dog Breed",
     y = "Total Count"
   )
 plot_4
 ```
 
-Plot #5 License issue date (are there peak times of the year when people license date)
-I made three plot options - I think the last two are the most useful
+Based on this plot, plotting dog breed by the total count, the most common dog breeds are American Pit Bull Mix/Pit Bull Mix, Chihuahua, Maltese, Shih Tzu, and Yorkshire Terrier. American Pit Bull Mix/Pit Bull Mix has the highest observed frequency in Brooklyn (n =2000) while the lowest in Staten Island (n = 600). Additionally, in Manhattan, Chihuahua's, and Yorkshire Terriers have the highest observed frequency. 
 
-Scatter plot with all dates
+$~$
 
-```{r}
-plot_5 =
-dogz %>% 
-group_by(license_issued_date) %>% 
-  summarize(n_obs = n()) %>% 
-    ggplot(aes(x = license_issued_date, y = n_obs, color = n_obs)) + 
-    geom_point() +
-    labs(title = "Number of licenses over time", 
-    x = "License issue date", 
-    y = "Number of licenses")
-plot_5
-```
-
-Line - condensed to months/years, this one might be more clear!
+### Number of licenses over time (license issue date vs. number of licenses) 
 
 ```{r}
 plot_5.5=
@@ -164,7 +236,11 @@ plot_5.5=
 plot_5.5
 ```
 
-# monthly trends, might be the most useful realistically
+Based on this line graph, license issue date by the number of licenses, the highest frequency of licences were issued between 2016 - 2018 while the fewest number of licenses were issued from 2015-2016. This could be due to the fact that because the dataset was capturing the dog licensed population from 2017-2019, a license that was purchased before those dates still could be active in the study time frame.
+
+$~$
+
+### Number of licenses issued per month (liscence issue date vs. number of liscences) 
 
 ```{r}
 plot_5.51=
@@ -174,7 +250,7 @@ plot_5.51=
          license_issued_date = factor(license_issued_date, c("Jan","Feb", "Mar", "Apr", "May", "Jun", "Jul","Aug", "Sep", "Oct","Nov", "Dec"), ordered = TRUE)) %>%
   group_by(license_issued_date) %>% 
   summarize(n_obs = n()) %>% 
-      ggplot(aes(x = license_issued_date, y = n_obs)) + 
+      ggplot(aes(x = license_issued_date, y = n_obs, color = n_obs)) + 
       geom_point() + geom_line(group=1) +
       labs(title = "Number of licenses issued per month", 
       x = "License issue date", 
@@ -182,11 +258,13 @@ plot_5.51=
 plot_5.51
 ```
 
-Plot #6 Most popular dog name by birth year 
+Based on this line graph, there is an increasing trend present in regards to the number of licenses issued per month. From January and March there is a steep increase, while there is a more gradual increase between March and June. There is a spike from June to July and a plateau from July to August. From August, there is a steady decrease until November, which then changes to an increase in December. There many plausible explanations for this phenomenon, but we hypothesize that it could be due to the fact that in the warmer months, individuals are more likely to want to adopt/buy a dog where it is easier to upkeep a dog as opposed to the colder winter months of the Northeast. 
 
-Top 10 dog names, all time
+$~$
 
-```{r}
+### Most popular dog name
+
+```{r, message = FALSE}
 top_dogz =
 distinct_dogz %>% 
   filter(animal_name != "Unknown",
@@ -199,9 +277,13 @@ distinct_dogz %>%
 knitr::kable(top_dogz)
 ```
 
-Top name by birth year
+In this table, we see the 10 most popular dog names among all of the data in this dataset. Max ranks in first place with 720 counts among the entire dataset. It is interesting to note that several of the dog names could be gender neutral among this top 10 list. 
 
-```{r}
+$~$
+
+### Most popular dog name by birth year
+
+```{r, message = FALSE}
 plot_6 = 
 distinct_dogz %>% 
   filter(animal_name != "Unknown",
@@ -212,70 +294,32 @@ distinct_dogz %>%
   summarize(n_obs = n()) %>% 
   top_n(1) %>% 
     ggplot(aes(x=animal_birth_year, y=n_obs, group = animal_name, color = animal_name)) + geom_point() + geom_line() +
-  labs(title = "Top name by birth year", 
+  labs(title = "Most popular dog name by birth year", 
     x = "Birth year", 
     y = "Number of dogs")
 plot_6
+
 ```
 
-Plot #7 Average age of dog
+Based on this line graph, we can see the trend of dog names over time (2000-2015). Names like Coco, Max, and Bella had an increase between 2000 - 2010 while names like Charlie gained popularity starting around 2007 until about 2016. Additionally, while names like Lucky and Lucy were popular, they only spanned a short duration of about a year.  Interestingly, there  has been a decrease in the popularity of the name Luna since 2016. 
 
-This setion might be problematic - we'd be making a big assumption that all dogs are still alive! we could make a new variable for age at first license, or age at data extraction
+$~$
 
-```{r}
-#average dog age.
-distinct_dogz %>% 
-  summarize(avg_age = mean(dog_age))
+### Map
 
-#average age by breed.
-distinct_dogz %>% 
-  group_by(breed_name) %>% 
-  summarize (avg_age = mean(dog_age)) %>% 
-  arrange(desc(avg_age))
+Refer to Doggos Map RMD for the code. 
 
-#10 oldest breeds.
-distinct_dogz %>% 
-  group_by(breed_name) %>% 
-  summarize (avg_age = mean(dog_age)) %>% 
-  arrange(desc(avg_age)) %>% 
-  top_n(10)
-```
+From this map, we can visually see the spread of where the licensed dogs in the five NYC boroughs are located. This map provides supporting evidnece of previous findings in which we saw that the Manhattan borough has the largest number of licesned dogs as compared to the other boroughs. Additionally, we can begin to see some visual clustering within each borough of where the licensed dogs are more likely to be living. For example, some clustering can be seen at the bottom tip of Manhattan, and around midtown.
 
-Plot #8 Avg age of dog by zip - trying to map by lat/long of zip codes but it doesnt look like much
+$~$
 
-```{r}
-#average age by zip code.
-distinct_dogz %>% 
-  group_by(zip_code) %>% 
-  summarize (avg_age = mean(dog_age))
+# Additional Analysis 
 
-distinct_dogz %>% 
-  select(zip_code, borough, dog_age, latitude, longitude) %>% 
-  filter(borough == "Manhattan") %>% 
-  ggplot(aes(x = longitude, y = latitude, color = dog_age)) +
-  geom_point()
-```
+```{r, message = FALSE, warning = FALSE}
 
-
-# Regression
-
-```{r, include=FALSE}
-
-#Regression analysis: predict the age of the dog (y) if you know the boro (x1) and gender (x2) and breed (x3)
-
-#Step 0: Cleaning: change breed_name to a factor rather than a character varialbe
-distinct_dogz_reg = 
-  distinct_dogz %>% 
-  mutate(
-    breed_name = as.factor(breed_name)
-  )
-distinct_dogz_reg
-```
-
-```{r}
 #create reference groups that are coded as 
 distinct_dogz_reg = 
-  distinct_dogz_reg %>% 
+  distinct_dogz %>% 
   mutate(
     borough = fct_infreq(borough),
     animal_gender = fct_infreq(animal_gender),
@@ -285,8 +329,8 @@ distinct_dogz_reg =
 fit = lm(dog_age ~ borough + animal_gender, data = distinct_dogz)
 
 #view outputs
-fit %>% 
-  broom::tidy()
+#fit %>% 
+#  broom::tidy()
 
 #create tidy table
 fit %>% 
@@ -295,17 +339,23 @@ fit %>%
   knitr::kable(digits = 3)
 ```
 
-```{r, include=FALSE}
-#model residuals 
-modelr::add_residuals(distinct_dogz_reg, fit)
-```
-
 ```{r}
 #graph residuals for each borough
 distinct_dogz_reg %>% 
   modelr::add_residuals(fit) %>% 
-  ggplot(aes(x = borough, y = resid)) + geom_violin()
+  ggplot(aes(x = borough, y = resid)) + geom_violin(fill = "pink") +
+  labs(title = "Graph of Residuals for each Borough", 
+    x = "Borough", 
+    y = "Residuals")
 ```
 
+In our linear regression model we predict the outcome of dog’s age given our main exposure of borough, adjusting for dog’s gender. Our beta values show that there is not much variance among dog age across different boroughs for both male and female dogs.  Additionally, as seen in our residuals plot, our data does not likely contain outliers and appears to be normally distributed.  We can also note that only one of the boroughs, Brooklyn, did not have a significant beta (p=0.265), indicating that we cannot statistically significantly predict a dog's age, while adjusting for gender there. One limitation to our model is the exclusion of breeds type as a variable in our model.  There is a theory that small dogs tend to live longers lives, thus in an ideal model we would have controlled for dog breed by categorizing breed size as small, medium, large breed.  Unfortunately, the large number of breed types included in our dataset impeded our ability to categorize each breed, and without categorizing this variable our degrees of freedom would be far too high for our model to be parsimonious. For these reasons we chose to exclude this variable from our model. 
 
+$~$
 
+# Discussion
+From this analysis, we can begin to make some insights about the licensed dogs in New York City.The age of the dogs' was pretty evenly distributed by borough, while Manhattan had the highest population. Consitently across the boroughs, there were more male dogs than females. A pattern was noted in the peak times where dog licesnes are issued: the warmer spring and summer months and in December. It was noted that as the years go on, more dogs are being licesned, indicating that more dogs are either being adopted or purchased in NYC. Max, Charlie and Bella, were the most popular dog names among the licensed dogs, and are continually growing in popularity. Finally, a statistical analysis was run to predict the dog's age by borough, while adjusting for gender. From this, we found, that borough does not seem to bring much variance amongst the dog's age. 
+
+Surprisingly, the trend for dog names did not last as long as expected. Various names such as Lola and Lucky, which are among the most popular dog names in this datset, only lasted for approximately a year. Additionally, the map allowed for an interesting initial look at clustering of areas where there is a higher concentration of dogs living, however further spatial analysis needs to be done in order to better understand this phenomenon. Unsuprisingly, we did not see larger dogs living the same amount or longer than smaller dogs or that more dogs were purchased/licensed during the warmer months and the December holiday season. Additionally, as one would expect, the highest number of dogs was found in Manhattan, and more male dogs were found than female dogs. 
+
+Some strengths of this study include thorough data cleaning, robust descriptive demographics and parsimonous regression model. A limitation, as previously discussed, is that a potential confounder of breed type was not included in the linear regression model. Further analysis is necessary to make insights about whether we can predict the age of a dog based on where they live in NYC. 
