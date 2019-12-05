@@ -13,15 +13,6 @@ lat_lon = read.csv("./data/lat-long.csv")
 ```
 
 ```{r}
-distinct_dogz %>% 
-  drop_na() %>% 
-  select(latitude, longitude, license_id, zip_code) %>% 
-  group_by(zip_code)
-```
-
-
-This code runs. Dont really like it though. 
-```{r}
 pal = colorNumeric(
   palette = "viridis",
   domain = distinct_dogz$zip_code)
@@ -35,29 +26,7 @@ distinct_dogz %>%
 ```
 
 
-Trying to get a more interesting map, but its not working
-```{r}
-dogz_map_data = 
-  distinct_dogz %>% 
-  select(latitude, longitude, license_id, zip_code) %>% 
-  mutate(
-    license_id = as.numeric(license_id),
-    zip_code = as.numeric(zip_code)
-  ) %>%
-  group_by(zip_code) %>% 
-  summarize(n = n()) 
 
-
-pal = colorNumeric(
-  palette = "viridis",
-  domain = dogz_map_data$zip_code)
-
-dogz_map_data %>% 
-  na.omit(zip_code) %>% 
-  leaflet() %>% 
-  addProviderTiles(providers$CartoDB.Positron) %>% 
-  addCircleMarkers(~longitude, ~latitude, radius = .1, color = ~pal(zip_code))
-```
 
 
 
